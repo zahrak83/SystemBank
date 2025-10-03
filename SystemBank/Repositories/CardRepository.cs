@@ -30,6 +30,12 @@ namespace SystemBank.Services
                 _context.SaveChanges();
             }
         }
+        public void AddTransaction(Transaction transaction)
+        {
+            _context.Transactions.Add(transaction);
+            _context.SaveChanges();
+        }
+
 
     }
 }

@@ -7,5 +7,6 @@ namespace SystemBank.Interface.IRepository
         Card? GetCardByNumber(string cardNumber);
         void UpdateCard(Card card);
         List<Transaction> GetTransactions(string cardNumber);
+        void AddTransaction(Transaction transaction);
     }
 }

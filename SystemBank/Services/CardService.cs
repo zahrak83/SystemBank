@@ -78,31 +78,25 @@ namespace SystemBank.Services
                 throw new Exception("The destination card is not valid or active.");
 
             if (sourceCard.Balance < amount)
-                throw new Exception("There is not enough inventory.");
+                throw new Exception("There is not enough balance.");
 
-            
             sourceCard.Balance -= amount;
             destCard.Balance += amount;
 
             _repository.UpdateCard(sourceCard);
             _repository.UpdateCard(destCard);
 
-            
             var transaction = new Transaction
             {
                 SourceCardNumber = sourceCardNumber,
                 DestinationCardNumber = destinationCardNumber,
                 Amount = amount,
                 TransactionDate = DateTime.Now,
-                IsSuccesful = true,
-                SourceCard = sourceCard,
-                DestinationCard = destCard
+                IsSuccesful = true
             };
 
-            var context = new AppDbContext();
-            context.Transactions.Add(transaction);
-            context.SaveChanges();
-        } 
+            _repository.AddTransaction(transaction);
+        }
         public List<Transaction> GetTransactions(string cardNumber)
         {
             return _repository.GetTransactions(cardNumber);
