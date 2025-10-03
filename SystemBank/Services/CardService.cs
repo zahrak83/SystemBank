@@ -101,5 +101,6 @@ namespace SystemBank.Services
         {
             return _repository.GetTransactions(cardNumber);
         }
+
     }
 }
