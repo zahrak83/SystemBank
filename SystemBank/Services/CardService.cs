@@ -8,31 +8,27 @@ namespace SystemBank.Services
     {
         private readonly CardRepository _repository = new CardRepository();
 
-        public void Authenticate(string cardNumber, string password)
+        public Card Authenticate(string cardNumber, string password)
         {
             if (string.IsNullOrWhiteSpace(cardNumber) || cardNumber.Length != 16)
             {
-                Console.WriteLine("Card number must be exactly 16 digits.");
-                return;
+                throw new ArgumentException("Card number must be exactly 16 digits.");
             }
 
             if (string.IsNullOrWhiteSpace(password))
             {
-                Console.WriteLine("Password cannot be empty.");
-                return;
+                throw new ArgumentException("Password cannot be empty.");
             }
 
             var card = _repository.GetCardByNumber(cardNumber);
             if (card == null)
             {
-                Console.WriteLine("Card not found.");
-                return;
+                throw new Exception("Card not found.");
             }
 
             if (!card.IsActive)
             {
-                Console.WriteLine("This card is blocked or not active.");
-                return;
+                throw new Exception("This card is blocked or not active.");
             }
 
             if (card.Password != password)
@@ -43,13 +39,11 @@ namespace SystemBank.Services
                 {
                     card.IsActive = false;
                     _repository.UpdateCard(card);
-                    Console.WriteLine("Your card was blocked due to 3 unsuccessful attempts.");
-                    return;
+                    throw new Exception("Your card was blocked due to 3 unsuccessful attempts.");
                 }
 
                 _repository.UpdateCard(card);
-                Console.WriteLine($"Incorrect password. {card.FailedPasswordAttempts} failed attempt(s).");
-                return;
+                throw new Exception($"Incorrect password. {card.FailedPasswordAttempts} failed attempt.");
             }
 
             if (card.FailedPasswordAttempts > 0)
@@ -58,9 +52,9 @@ namespace SystemBank.Services
                 _repository.UpdateCard(card);
             }
 
-            Console.WriteLine("Login successful!");
+            return card;
         }
-        public void Transfer(string sourceCardNumber, string destinationCardNumber, float amount)
+        public Card Transfer(string sourceCardNumber, string destinationCardNumber, float amount)
         {
             if (sourceCardNumber.Length != 16 || destinationCardNumber.Length != 16)
                 throw new Exception("Card numbers must be 16 digits.");
@@ -96,6 +90,8 @@ namespace SystemBank.Services
             };
 
             _repository.AddTransaction(transaction);
+
+            return sourceCard;
         }
         public List<Transaction> GetTransactions(string cardNumber)
         {

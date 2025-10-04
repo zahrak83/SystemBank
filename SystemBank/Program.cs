@@ -7,7 +7,6 @@ namespace SystemBank.ConsoleApp
     class Program
     {
         static CardService cardService = new CardService();
-        static CardRepository cardRepository = new CardRepository();
 
         static void Main(string[] args)
         {
@@ -24,16 +23,7 @@ namespace SystemBank.ConsoleApp
 
                 try
                 {
-                    cardService.Authenticate(cardNumber, password);
-
-                    var loggedCard = cardRepository.GetCardByNumber(cardNumber);
-                    if (loggedCard == null)
-                    {
-                        ShowError("Card not found in the system.");
-                        Console.ReadKey();
-                        continue;
-                    }
-
+                    var loggedCard = cardService.Authenticate(cardNumber, password);
                     AccountMenu(loggedCard);
                 }
                 catch (Exception ex)
@@ -96,9 +86,7 @@ namespace SystemBank.ConsoleApp
 
             try
             {
-                cardService.Transfer(sourceCard.CardNumber, dest, amount);
-
-                sourceCard = cardRepository.GetCardByNumber(sourceCard.CardNumber)!;
+                sourceCard = cardService.Transfer(sourceCard.CardNumber, dest, amount);
 
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Transfer successful.");
