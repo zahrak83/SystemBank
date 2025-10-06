@@ -2,9 +2,9 @@
 using SystemBank.Infrastructure;
 using SystemBank.Interface.IRepository;
 
-namespace SystemBank.Services
+namespace SystemBank.Infrastructure
 {
-    public class CardRepository : ICardRepository
+    public class Car : ICardRepository
     {
         AppDbContext _context = new AppDbContext();
 

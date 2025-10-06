@@ -6,7 +6,7 @@ namespace SystemBank.Services
 {
     public class CardService : ICardService
     {
-        private readonly CardRepository _repository = new CardRepository();
+        private readonly Car _repository = new Car();
 
         public Card Authenticate(string cardNumber, string password)
         {
