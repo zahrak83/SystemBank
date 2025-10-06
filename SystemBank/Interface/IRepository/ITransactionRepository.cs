@@ -1,7 +1,10 @@
-﻿namespace SystemBank.Interface.IRepository
+﻿using SystemBank.Dtos;
+
+namespace SystemBank.Interface.IRepository
 {
     public interface ITransactionRepository
     {
-        void Create()
+        void Create(CreateTransactionDto model);
+        List<GetTransactionDto> GetAll(string cardNumber);
     }
 }

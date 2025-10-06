@@ -4,9 +4,11 @@ namespace SystemBank.Interface.IRepository
 {
     public interface ICardRepository
     {
-        Card? GetCardByNumber(string cardNumber);
-        void UpdateCard(Card card);
-        List<Transaction> GetTransactions(string cardNumber);
-        void AddTransaction(Transaction transaction);
+        bool CardExist(string cardNumber, string password);
+        void SetBalance(string cardNumber, float amount);
+        bool CardIsActive(string cardNumber);
+        Card GetCardByNumber(string cardNumber);
+        float GetBalance(string cardNumber);
+        Card GetCardWithTransactions(string cardNumber);
     }
 }

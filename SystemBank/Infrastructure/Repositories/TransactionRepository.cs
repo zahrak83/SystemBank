@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SystemBank.Dtos;
+using SystemBank.Interface.IRepository;
 
 namespace SystemBank.Infrastructure.Repositories
 {
-    internal class TransactionRepository
+    public class TransactionRepository : ITransactionRepository
     {
+        public void Create(CreateTransactionDto model)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<GetTransactionDto> GetAll(string cardNumber)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
