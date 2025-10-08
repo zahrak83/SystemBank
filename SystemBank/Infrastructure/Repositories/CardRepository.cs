@@ -1,4 +1,5 @@
-﻿using SystemBank.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using SystemBank.Entities;
 using SystemBank.Interface.IRepository;
 
 namespace SystemBank.Infrastructure.Repositories
@@ -26,22 +27,31 @@ namespace SystemBank.Infrastructure.Repositories
 
         public float GetBalance(string cardNumber)
         {
-            throw new NotImplementedException();
+            return _appDbContext.Cards
+                .Where(c => c.CardNumber == cardNumber)
+                .Select(c => c.Balance)
+                .First();
         }
 
         public Card GetCardByNumber(string cardNumber)
         {
-            throw new NotImplementedException();
+            return _appDbContext.Cards
+                .FirstOrDefault(c => c.CardNumber == cardNumber);
         }
 
         public Card GetCardWithTransactions(string cardNumber)
         {
-            throw new NotImplementedException();
+            return _appDbContext.Cards
+                .Include(c => c.TransactionsSource)
+                .Include(c => c.TransactionsDestination)
+                .First(c => c.CardNumber == cardNumber);
         }
 
         public void SetBalance(string cardNumber, float amount)
         {
-            throw new NotImplementedException();
+            _appDbContext.Cards
+                .Where(c => c.CardNumber == cardNumber)
+                .ExecuteUpdate(setters => setters.SetProperty(c => c.Balance, amount));
         }
     }
 }
