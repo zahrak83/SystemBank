@@ -1,102 +1,99 @@
-﻿using SystemBank.Entities;
+﻿using SystemBank.Dtos;
+using SystemBank.Entities;
 using SystemBank.Infrastructure;
+using SystemBank.Infrastructure.Repositories;
+using SystemBank.Interface.IRepository;
 using SystemBank.Interface.IService;
 
 namespace SystemBank.Services
 {
     public class CardService : ICardService
     {
-        private readonly Car _repository = new Car();
+        private readonly ICardRepository _cardRepository;
 
-        public Card Authenticate(string cardNumber, string password)
+        public CardService()
         {
-            if (string.IsNullOrWhiteSpace(cardNumber) || cardNumber.Length != 16)
+            _cardRepository = new CardRepository();
+        }
+
+        public Result Login(string cardNumber, string password)
+        {
+            if (string.IsNullOrWhiteSpace(cardNumber) || string.IsNullOrWhiteSpace(password))
             {
-                throw new ArgumentException("Card number must be exactly 16 digits.");
+                return new Result
+                {
+                    IsSuccess = false,
+                    Message = "Card number and password cannot be empty."
+                };
             }
 
-            if (string.IsNullOrWhiteSpace(password))
+            if (cardNumber.Length != 16)
             {
-                throw new ArgumentException("Password cannot be empty.");
+                return new Result
+                {
+                    IsSuccess = false,
+                    Message = "Invalid card number."
+                };
             }
 
-            var card = _repository.GetCardByNumber(cardNumber);
+            var card = _cardRepository.GetCardByNumber(cardNumber);
             if (card == null)
             {
-                throw new Exception("Card not found.");
-            }
-
-            if (!card.IsActive)
-            {
-                throw new Exception("This card is blocked or not active.");
-            }
-
-            if (card.Password != password)
-            {
-                card.FailedPasswordAttempts++;
-
-                if (card.FailedPasswordAttempts >= 3)
+                return new Result
                 {
-                    card.IsActive = false;
-                    _repository.UpdateCard(card);
-                    throw new Exception("Your card was blocked due to 3 unsuccessful attempts.");
+                    IsSuccess = false,
+                    Message = "Card not found."
+                };
+            }
+
+            if (!_cardRepository.CardIsActive(cardNumber))
+            {
+                return new Result
+                {
+                    IsSuccess = false,
+                    Message = "This card has been blocked."
+                };
+            }
+
+            var tryCount = _cardRepository.GetWrongPasswordTry(cardNumber);
+
+            var cardExist = _cardRepository.CardExist(cardNumber, password);
+
+            if (cardExist)
+            {
+                if (tryCount > 0)
+                {
+                    _cardRepository.ClearWrongPasswordTry(cardNumber);
+                    _cardRepository.SaveChanges();
                 }
 
-                _repository.UpdateCard(card);
-                throw new Exception($"Incorrect password. {card.FailedPasswordAttempts} failed attempt.");
+                return new Result { IsSuccess = true, Message = "Login successful." };
             }
-
-            if (card.FailedPasswordAttempts > 0)
+            else
             {
-                card.FailedPasswordAttempts = 0;
-                _repository.UpdateCard(card);
+                _cardRepository.SetWrongPasswordTry(cardNumber);
+                _cardRepository.SaveChanges();
+
+                var newTryCount = _cardRepository.GetWrongPasswordTry(cardNumber);
+                if (newTryCount >= 3)
+                {
+                    _cardRepository.SetDeactive(cardNumber);
+                    _cardRepository.SaveChanges();
+
+                    return new Result
+                    {
+                        IsSuccess = false,
+                        Message = "3 unsuccessful attempts! Your card has been blocked."
+                    };
+                }
+                return new Result
+                {
+                    IsSuccess = false,
+                    Message = "Card number or password is wrong."
+                };
             }
-
-            return card;
         }
-        public Card Transfer(string sourceCardNumber, string destinationCardNumber, float amount)
-        {
-            if (sourceCardNumber.Length != 16 || destinationCardNumber.Length != 16)
-                throw new Exception("Card numbers must be 16 digits.");
-
-            if (amount <= 0)
-                throw new Exception("The amount must be greater than zero.");
-
-            var sourceCard = _repository.GetCardByNumber(sourceCardNumber);
-            var destCard = _repository.GetCardByNumber(destinationCardNumber);
-
-            if (sourceCard == null || !sourceCard.IsActive)
-                throw new Exception("The origin card is not valid or active.");
-
-            if (destCard == null || !destCard.IsActive)
-                throw new Exception("The destination card is not valid or active.");
-
-            if (sourceCard.Balance < amount)
-                throw new Exception("There is not enough balance.");
-
-            sourceCard.Balance -= amount;
-            destCard.Balance += amount;
-
-            _repository.UpdateCard(sourceCard);
-            _repository.UpdateCard(destCard);
-
-            var transaction = new Transaction
-            {
-                SourceCardNumber = sourceCardNumber,
-                DestinationCardNumber = destinationCardNumber,
-                Amount = amount,
-                TransactionDate = DateTime.Now,
-                IsSuccesful = true
-            };
-
-            _repository.AddTransaction(transaction);
-
-            return sourceCard;
-        }
-        public List<Transaction> GetTransactions(string cardNumber)
-        {
-            return _repository.GetTransactions(cardNumber);
-        }
-
     }
 }
+
+        

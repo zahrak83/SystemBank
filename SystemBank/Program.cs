@@ -1,135 +1,94 @@
-﻿using SystemBank.Entities;
+﻿using LibrarySystem.Extention;
+using SystemBank.Interface.IService;
 using SystemBank.Services;
-using LibrarySystem.Extention; 
 
-namespace SystemBank.ConsoleApp
+namespace SystemBank
 {
-    class Program
+    public class Program
     {
-        static CardService cardService = new CardService();
-
         static void Main(string[] args)
         {
+            ICardService cardService = new CardService();
+            ITransactionService transactionService = new TransactionService();
+
+
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== Welcome to SystemBank ===");
+                ConsolePainter.WriteLine("=== SystemBank Login ===", ConsoleColor.Cyan);
 
                 Console.Write("Card Number: ");
-                string cardNumber = (Console.ReadLine() ?? "").Trim();
+                string cardNumber = Console.ReadLine()!;
 
                 Console.Write("Password: ");
-                string password = Console.ReadLine() ?? "";
+                string password = Console.ReadLine()!;
 
-                try
+                var loginResult = cardService.Login(cardNumber, password);
+
+                if (!loginResult.IsSuccess)
                 {
-                    var loggedCard = cardService.Authenticate(cardNumber, password);
-                    AccountMenu(loggedCard);
-                }
-                catch (Exception ex)
-                {
-                    ShowError(ex.Message);
+                    ConsolePainter.WriteLine(loginResult.Message, ConsoleColor.Red);
                     Console.ReadKey();
                     continue;
                 }
-            }
-        }
 
-        static void AccountMenu(Card card)
-        {
-            while (true)
-            {
-                Console.Clear();
-                Console.WriteLine($"Logged in as: {card.CardNumber}");
-                Console.WriteLine("1) Transfer Money");
-                Console.WriteLine("2) Show Transactions");
-                Console.WriteLine("3) Logout");
-                Console.Write("Choose option: ");
-                var opt = Console.ReadLine()?.Trim();
-
-                switch (opt)
+                bool logout = false;
+                while (!logout) 
                 {
-                    case "1":
-                        TransferFlow(card);
-                        break;
-                    case "2":
-                        ShowTransactionsFlow(card);
-                        break;
-                    case "3":
-                        return; 
-                    default:
-                        ShowError("Invalid option.");
-                        Console.ReadKey();
-                        break;
+                    Console.Clear();
+                    ConsolePainter.WriteLine($"Logged in: {cardNumber}", ConsoleColor.Green);
+                    ConsolePainter.WriteLine("=== User Menu ===", ConsoleColor.Cyan);
+                    ConsolePainter.WriteLine("1. Transfer Money");
+                    ConsolePainter.WriteLine("2. Show Transactions");
+                    ConsolePainter.WriteLine("3. Exit (Logout)");
+                    Console.Write("Select option: ");
+                    string option = Console.ReadLine()!;
+
+                    switch (option)
+                    {
+                        case "1": 
+                            Console.Clear();
+                            ConsolePainter.WriteLine($"Your card: {cardNumber}", ConsoleColor.Yellow);
+                            Console.Write("Destination Card Number: ");
+                            string destCard = Console.ReadLine()!;
+
+                            Console.Write("Amount: ");
+                            bool validAmount = float.TryParse(Console.ReadLine(), out float amount);
+                            if (!validAmount)
+                            {
+                                ConsolePainter.WriteLine("Invalid amount!", ConsoleColor.Red);
+                                Console.ReadKey();
+                                break;
+                            }
+
+                            var transferResult = transactionService.Transfer(cardNumber, destCard, amount);
+                            if (transferResult.IsSuccess)
+                                ConsolePainter.WriteLine(transferResult.Message, ConsoleColor.Green);
+                            else
+                                ConsolePainter.WriteLine(transferResult.Message, ConsoleColor.Red);
+
+                            Console.ReadKey();
+                            break;
+
+                        case "2": 
+                            Console.Clear();
+                            var transactions = transactionService.GetAll(cardNumber);
+                            ConsolePainter.WriteLine("=== Your Transactions ===", ConsoleColor.Cyan);
+                            ConsolePainter.WriteTable(transactions, ConsoleColor.Yellow, ConsoleColor.White);
+                            Console.ReadKey();
+                            break;
+
+                        case "3": 
+                            logout = true;
+                            break;
+
+                        default:
+                            ConsolePainter.WriteLine("Invalid option! Try again.", ConsoleColor.Red);
+                            Console.ReadKey();
+                            break;
+                    }
                 }
             }
-        }
-
-        static void TransferFlow(Card sourceCard)
-        {
-            Console.Clear();
-            Console.WriteLine("=== Transfer Money ===");
-            Console.WriteLine($"Source Card: {sourceCard.CardNumber}");
-
-            Console.Write("Destination Card Number: ");
-            string dest = (Console.ReadLine() ?? "").Trim();
-
-            Console.Write("Amount to transfer: ");
-            string amountStr = Console.ReadLine() ?? "";
-
-            if (!float.TryParse(amountStr, out float amount))
-            {
-                ShowError("Invalid amount.");
-                Console.ReadKey();
-                return;
-            }
-
-            try
-            {
-                sourceCard = cardService.Transfer(sourceCard.CardNumber, dest, amount);
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Transfer successful.");
-                Console.ResetColor();
-            }
-            catch (Exception ex)
-            {
-                ShowError(ex.Message);
-            }
-
-            Console.ReadKey();
-        }
-
-        static void ShowTransactionsFlow(Card card)
-        {
-            Console.Clear();
-            Console.WriteLine($"=== Transactions for {card.CardNumber} ===");
-
-            try
-            {
-                var txs = cardService.GetTransactions(card.CardNumber);
-                if (txs.Count == 0)
-                {
-                    Console.WriteLine("(no transactions found)");
-                }
-                else
-                {
-                    ConsolePainter.WriteTable(txs, headerColor: ConsoleColor.Yellow, rowColor: ConsoleColor.White);
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowError(ex.Message);
-            }
-
-            Console.ReadKey();
-        }
-
-        static void ShowError(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Error: " + message);
-            Console.ResetColor();
         }
     }
 }
