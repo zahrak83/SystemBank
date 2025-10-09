@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace SystemBank.Entities
+﻿namespace SystemBank.Entities
 {
     public class Card
     {
