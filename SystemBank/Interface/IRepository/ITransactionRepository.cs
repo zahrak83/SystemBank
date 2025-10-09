@@ -6,5 +6,6 @@ namespace SystemBank.Interface.IRepository
     {
         void Create(CreateTransactionDto model);
         List<GetTransactionDto> GetAll(string cardNumber);
+        public float DailyWithdrawal(string cardNumber);
     }
 }

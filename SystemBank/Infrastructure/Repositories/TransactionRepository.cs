@@ -26,7 +26,14 @@ namespace SystemBank.Infrastructure.Repositories
             _appDbContext.Transactions.Add(entity);
             _appDbContext.SaveChanges();
         }
+        public float DailyWithdrawal(string cardNumber)
+        {
+            var amountOfTransactions = _appDbContext.Transactions
+                    .Where(x => x.TransactionDate.Date == DateTime.Now.Date && x.SourceCard.CardNumber == cardNumber)
+                    .Sum(x => x.Amount);
 
+            return amountOfTransactions;
+        }
         public List<GetTransactionDto> GetAll(string cardNumber)
         {
             return _appDbContext.Transactions
