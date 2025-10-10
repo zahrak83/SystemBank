@@ -9,7 +9,7 @@
         public string DestinationCardNumber { get; set; }
         public float Amount { get; set; }
         public DateTime TransactionDate { get; set; } = DateTime.Now;
-        public bool IsSuccesful { get; set; }
-
+        public bool IsSuccessful { get; set; }
+        public float Fee { get; set; }
     }
 }

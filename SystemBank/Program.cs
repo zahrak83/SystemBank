@@ -40,7 +40,8 @@ namespace SystemBank
                     ConsolePainter.WriteLine("=== User Menu ===", ConsoleColor.Cyan);
                     ConsolePainter.WriteLine("1. Transfer Money");
                     ConsolePainter.WriteLine("2. Show Transactions");
-                    ConsolePainter.WriteLine("3. Exit (Logout)");
+                    ConsolePainter.WriteLine("3. Change Password");
+                    ConsolePainter.WriteLine("4. Exit");
                     Console.Write("Select option: ");
                     string option = Console.ReadLine()!;
 
@@ -51,6 +52,17 @@ namespace SystemBank
                             ConsolePainter.WriteLine($"Your card: {cardNumber}", ConsoleColor.Yellow);
                             Console.Write("Destination Card Number: ");
                             string destCard = Console.ReadLine()!;
+                            
+                            string? holderName = cardService.GetHolderNameByCardNumber(destCard);
+
+                            if (holderName == null)
+                            {
+                                ConsolePainter.WriteLine("Destination card not found.", ConsoleColor.Red);
+                                Console.ReadKey();
+                                break;
+                            }
+
+                            Console.WriteLine($"Destination card holder: {holderName}");
 
                             Console.Write("Amount: ");
                             bool validAmount = float.TryParse(Console.ReadLine(), out float amount);
@@ -78,7 +90,23 @@ namespace SystemBank
                             Console.ReadKey();
                             break;
 
-                        case "3": 
+                        case "3":
+                            Console.Clear();
+                            Console.Write("Current Password: ");
+                            string currentPass = Console.ReadLine()!;
+                            Console.Write("New Password: ");
+                            string newPass = Console.ReadLine()!;
+
+                            var changeRes = cardService.ChangePassword(cardNumber, currentPass, newPass);
+                            if (changeRes.IsSuccess)
+                                ConsolePainter.WriteLine(changeRes.Message, ConsoleColor.Green);
+                            else
+                                ConsolePainter.WriteLine(changeRes.Message, ConsoleColor.Red);
+
+                            Console.ReadKey();
+                            break;
+
+                        case "4": 
                             logout = true;
                             break;
 

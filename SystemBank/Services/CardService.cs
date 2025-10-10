@@ -16,6 +16,21 @@ namespace SystemBank.Services
             _cardRepository = new CardRepository();
         }
 
+        public Result ChangePassword(string cardNumber, string oldPassword, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return new Result { IsSuccess = false, Message = "New password cannot be empty." };
+
+            var isValid = _cardRepository.CardExist(cardNumber, oldPassword);
+            if (!isValid)
+                return new Result { IsSuccess = false, Message = "Current password is incorrect." };
+
+            _cardRepository.SetPassword(cardNumber, newPassword);
+            _cardRepository.SaveChanges();
+
+            return new Result { IsSuccess = true, Message = "Password changed successfully." };
+        }
+
         public Result Login(string cardNumber, string password)
         {
             if (string.IsNullOrWhiteSpace(cardNumber) || string.IsNullOrWhiteSpace(password))
@@ -92,6 +107,11 @@ namespace SystemBank.Services
                     Message = "Card number or password is wrong."
                 };
             }
+        }
+        public string? GetHolderNameByCardNumber(string destinationCardNumber)
+        {
+            var card = _cardRepository.GetCardByNumber(destinationCardNumber);
+            return card?.HolderName;
         }
     }
 }

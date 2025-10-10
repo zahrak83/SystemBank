@@ -18,9 +18,10 @@ namespace SystemBank.Infrastructure.Repositories
             {
                 DestinationCardNumber = model.DestinationCardNumber,
                 SourceCardNumber = model.SourceCardNumber,
-                IsSuccesful = model.IsSuccessful,
+                IsSuccessful = model.IsSuccessful,
                 TransactionDate = DateTime.Now,
                 Amount = model.Amount,
+                Fee = model.Fee
             };
 
             _appDbContext.Transactions.Add(entity);
@@ -29,7 +30,7 @@ namespace SystemBank.Infrastructure.Repositories
         public float DailyWithdrawal(string cardNumber)
         {
             var amountOfTransactions = _appDbContext.Transactions
-                    .Where(x => x.TransactionDate.Date == DateTime.Now.Date && x.SourceCard.CardNumber == cardNumber)
+                    .Where(x => x.TransactionDate.Date == DateTime.Now.Date && x.SourceCard.CardNumber == cardNumber && x.IsSuccessful)
                     .Sum(x => x.Amount);
 
             return amountOfTransactions;
@@ -44,9 +45,10 @@ namespace SystemBank.Infrastructure.Repositories
                      TransactionId = t.TransactionId,
                      Amount = t.Amount,
                      DestinationCardNumber = t.DestinationCardNumber,
-                     IsSuccessful = t.IsSuccesful,
+                     IsSuccessful = t.IsSuccessful,
                      SourceCardNumber = t.SourceCardNumber,
-                     TransactionDate = t.TransactionDate
+                     TransactionDate = t.TransactionDate,
+                     Fee= t.Fee
                  }).ToList();
 
         }

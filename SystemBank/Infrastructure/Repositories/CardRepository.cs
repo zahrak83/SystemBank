@@ -86,5 +86,11 @@ namespace SystemBank.Infrastructure.Repositories
         {
             _appDbContext.SaveChanges();
         }
+        public void SetPassword(string cardNumber, string newPassword)
+        {
+            _appDbContext.Cards
+                .Where(c => c.CardNumber == cardNumber)
+                .ExecuteUpdate(setters => setters.SetProperty(c => c.Password, newPassword));
+        }
     }
 }

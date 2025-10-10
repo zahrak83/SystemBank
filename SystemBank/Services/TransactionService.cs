@@ -47,7 +47,11 @@ namespace SystemBank.Services
                 return new Result { IsSuccess = false, Message = "Destination card does not exist" };
 
             var sourceBalance = _cardRepository.GetBalance(sourceCardNumber);
-            if (sourceBalance < amount)
+
+            var fee = amount > 1000f ? amount * 0.015f : amount * 0.005f;
+            var totalDeduction = amount + fee;
+
+            if (sourceBalance < totalDeduction)
                 return new Result { IsSuccess = false, Message = "Your card doesn't have enough balance for this transaction" };
 
 
@@ -80,6 +84,7 @@ namespace SystemBank.Services
                 _transactionRepository.Create(new CreateTransactionDto
                 {
                     Amount = amount,
+                    Fee = fee,
                     DestinationCardNumber = destinationCardNumber,
                     SourceCardNumber = sourceCardNumber,
                     IsSuccessful = transactionStatus
