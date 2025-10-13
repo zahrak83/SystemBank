@@ -110,8 +110,7 @@ namespace SystemBank.Services
         }
         public string? GetHolderNameByCardNumber(string destinationCardNumber)
         {
-            var card = _cardRepository.GetCardByNumber(destinationCardNumber);
-            return card?.HolderName;
+            return _cardRepository.GetHolderNameByCardNumber(destinationCardNumber);
         }
     }
 }

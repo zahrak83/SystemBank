@@ -17,6 +17,7 @@ namespace SystemBank.Interface.IRepository
         int GetWrongPasswordTry(string cardNumber);
         void SaveChanges();
         void SetPassword(string cardNumber, string newPassword);
+        string? GetHolderNameByCardNumber(string cardNumber);
 
     }
 }
