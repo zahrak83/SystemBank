@@ -47,6 +47,7 @@ namespace SystemBank.Services
                 return new Result { IsSuccess = false, Message = "Destination card does not exist" };
 
             var sourceBalance = _cardRepository.GetBalance(sourceCardNumber);
+            var destinationBalance = _cardRepository.GetBalance(destinationCardNumber);
 
             var fee = amount > 1000f ? amount * 0.015f : amount * 0.005f;
             var totalDeduction = amount + fee;
@@ -54,29 +55,36 @@ namespace SystemBank.Services
             if (sourceBalance < totalDeduction)
                 return new Result { IsSuccess = false, Message = "Your card doesn't have enough balance for this transaction" };
 
-
             var dailyWithdrawal = _transactionRepository.DailyWithdrawal(sourceCardNumber);
-
             if ((dailyWithdrawal + amount) > 250)
             {
-                return new Result 
+                return new Result
                 {
                     IsSuccess = false,
-                    Message = "youre daily transfer limit is full"
+                    Message = "your daily transfer limit is full"
                 };
             }
 
-            var destinationBalance = _cardRepository.GetBalance(destinationCardNumber);
-
             try
             {
-                _cardRepository.SetBalance(sourceCardNumber, sourceBalance - amount);
+                _cardRepository.SetBalance(sourceCardNumber, sourceBalance - totalDeduction);
+                _cardRepository.SaveChanges();
+
                 _cardRepository.SetBalance(destinationCardNumber, destinationBalance + amount);
                 _cardRepository.SaveChanges();
+
                 transactionStatus = true;
             }
-            catch
+            catch (Exception ex)
             {
+                var currentSourceBalance = _cardRepository.GetBalance(sourceCardNumber);
+
+                if (currentSourceBalance < sourceBalance)
+                {
+                    _cardRepository.SetBalance(sourceCardNumber, sourceBalance);
+                    _cardRepository.SaveChanges();
+                }
+
                 transactionStatus = false;
             }
             finally
@@ -90,24 +98,24 @@ namespace SystemBank.Services
                     IsSuccessful = transactionStatus
                 });
             }
+
             if (transactionStatus)
             {
-                return new Result 
+                return new Result
                 {
                     IsSuccess = true,
-                    Message = "Transfer money succeeded" 
+                    Message = "Transfer money succeeded"
                 };
             }
-                
             else
             {
-                return new Result 
-                { 
+                return new Result
+                {
                     IsSuccess = false,
-                    Message = "Transfer failed due to an error" 
+                    Message = "Transfer failed, amount refunded to source account"
                 };
             }
-                
         }
+
     }
 }

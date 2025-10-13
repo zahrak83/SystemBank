@@ -92,7 +92,6 @@ namespace SystemBank.Infrastructure.Repositories
                 .Where(c => c.CardNumber == cardNumber)
                 .ExecuteUpdate(setters => setters.SetProperty(c => c.Password, newPassword));
         }
-
         public string? GetHolderNameByCardNumber(string cardNumber)
         {
             return _appDbContext.Cards

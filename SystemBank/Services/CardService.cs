@@ -30,7 +30,6 @@ namespace SystemBank.Services
 
             return new Result { IsSuccess = true, Message = "Password changed successfully." };
         }
-
         public Result Login(string cardNumber, string password)
         {
             if (string.IsNullOrWhiteSpace(cardNumber) || string.IsNullOrWhiteSpace(password))
